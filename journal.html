@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Encrypted Journal Web App with Music Motivator</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        body { padding-top: 20px; padding-bottom: 50px; } /* Added bottom padding */
+        .entry-item { cursor: pointer; }
+        .entry-item:hover { background-color: #f8f9fa; }
+        #notification-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 1050; /* Above Bootstrap modals if any */
+            display: none; /* Hidden by default */
+            text-align: center;
+            padding: 8px;
+        }
+        #detailContent img { max-width: 100%; height: auto; } /* Style images in content */
+    </style>
+</head>
+<body class="container">
+
+    <div id="notification-bar" class="alert" role="alert">
+        <span id="notification-message"></span>
+        <button type="button" class="close" aria-label="Close" onclick="hideNotification()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+
+    <h1>Encrypted Journal and Music Motivator</h1>
+    <hr>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            Add / Edit Entry
+        </div>
+        <div class="card-body">
+            <form id="entryForm">
+                <input type="hidden" id="editingEntryId" value=""> <div class="form-group">
+                    <label for="title">Title</label>
+                    <input type="text" id="title" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="content">Content (Markdown Supported)</label>
+                    <textarea id="content" class="form-control" rows="4" required></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary" id="saveEntryBtn">Save Entry</button>
+                <button type="button" class="btn btn-secondary" id="cancelEditBtn" style="display: none;">Cancel Edit</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            Journal Entries
+        </div>
+        <ul class="list-group list-group-flush" id="entriesList">
+            <li class='list-group-item'>Loading entries...</li>
+        </ul>
+    </div>
+
+    <div class="card mb-4" id="entryDetailsCard" style="display:none;">
+        <div class="card-header">
+            Entry Details
+            <button type="button" class="close" aria-label="Close" id="closeDetailBtnTop">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <div class="card-body">
+            <h4 id="detailTitle"></h4>
+            <p><em id="detailDate"></em></p>
+            <div id="detailContent"></div> <hr>
+            <button id="editBtn" class="btn btn-warning mr-2">Edit Entry</button>
+            <button id="deleteBtn" class="btn btn-danger mr-2">Delete Entry</button>
+            <button id="closeDetailBtnBottom" class="btn btn-secondary">Close</button>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            Database Management
+        </div>
+        <div class="card-body">
+            <button id="exportBtn" class="btn btn-info">Export Data</button>
+            <hr>
+            <label for="importFile">Import Data (JSON backup file)</label>
+            <input type="file" id="importFile" class="form-control-file" accept=".json">
+            <button id="importBtn" class="btn btn-secondary mt-2">Import Data</button>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            Music Motivator
+        </div>
+        <div class="card-body">
+            <div class="form-row">
+                <div class="form-group col-md-4">
+                    <label for="lessons">Lessons (5 min each):</label>
+                    <input type="number" id="lessons" class="form-control" value="0" min="0">
+                </div>
+                <div class="form-group col-md-4">
+                    <label for="exercises">Exercises (10 min each):</label>
+                    <input type="number" id="exercises" class="form-control" value="0" min="0">
+                </div>
+                <div class="form-group col-md-4">
+                    <label for="labs">Labs (20 min each):</label>
+                    <input type="number" id="labs" class="form-control" value="0" min="0">
+                </div>
+            </div>
+            <button class="btn btn-primary mb-2" id="addMinutesBtn">Add Minutes</button>
+            <p>Minutes Left: <strong id="minutesLeft">0</strong></p>
+            <p>Current Song: <span id="currentSong">None</span></p>
+            <div>
+                <button class="btn btn-success btn-sm mr-1" id="playBtn" disabled title="Play/Start"><i class="fas fa-play"></i> Play</button>
+                <button class="btn btn-warning btn-sm mr-1" id="pauseBtn" disabled title="Pause"><i class="fas fa-pause"></i> Pause</button>
+                <button class="btn btn-info btn-sm mr-1" id="resumeBtn" disabled title="Resume"><i class="fas fa-play-circle"></i> Resume</button>
+                <button class="btn btn-danger btn-sm" id="stopBtn" disabled title="Stop"><i class="fas fa-stop"></i> Stop</button>
+            </div>
+            <div class="form-row mt-3 align-items-end">
+                <div class="form-group col-md-6">
+                    <label for="playbackMode">Playback Mode:</label>
+                    <select class="form-control form-control-sm" id="playbackMode">
+                        <option value="normal">Normal</option>
+                        <option value="shuffle">Shuffle</option>
+                        <option value="repeat">Repeat Current</option>
+                        <option value="repeat_all">Repeat All</option> </select>
+                </div>
+                <div class="form-group col-md-6">
+                    <label for="playlistFolder">Load Playlist:</label>
+                    <input type="file" id="playlistFolder" class="form-control-file" webkitdirectory directory multiple accept="audio/*">
+                     <small class="form-text text-muted">Select a folder containing audio files. May require Chrome/Edge/Firefox.</small>
+                </div>
+            </div>
+             <audio id="audioPlayer" style="width: 100%; margin-top: 10px;" controls></audio> </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            Keyboard Shortcuts
+        </div>
+        <div class="card-body">
+            <p><strong>Ctrl + S (or Cmd + S):</strong> Save/Update Journal Entry</p>
+            <p><strong>Ctrl + N (or Cmd + N):</strong> New Journal Entry (Clear Form)</p>
+            <p><strong>Ctrl + E (or Cmd + E):</strong> Edit Currently Viewed Journal Entry</p>
+             <p><strong>Esc:</strong> Close Entry Detail View / Cancel Edit Mode</p>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/js/all.min.js"></script>
+    <script src="app.js" defer></script>
+</body>
+</html>
