@@ -8,3 +8,6 @@ If you want to use it on another computer afterward, plug in your USB and click 
 For maximum security, consider clearing the browser data/cookies/cache afterwards (for how long you used the journal.html file).
 
 All of the data is encrypted, with the key travelling with the .JSON file.
+
+Now, this has a new music motivator thingy. Should be intuitive to use.
+The only problem is with the key stuff... anyone who has access to the website and your .JSON file can see your .JSON file
